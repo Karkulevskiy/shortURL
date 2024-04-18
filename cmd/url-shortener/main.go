@@ -6,6 +6,11 @@ import (
 	"url-shortener/internal/config"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/postgres"
+
+	mwlogger "url-shortener/internal/http-server/middleware/logger"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 const (
@@ -24,7 +29,12 @@ func main() {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
-
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID) // Каждому запросу добавляется его id
+	router.Use(mwlogger.New(log))    // Кастомный logger middleware
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+	//router.Use(middleware.Logger)    // Logger для запросов
 	_ = storage
 }
 
