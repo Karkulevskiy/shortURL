@@ -2,11 +2,13 @@ package main
 
 import (
 	"log/slog"
+	"net/http"
 	"os"
 	"url-shortener/internal/config"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/postgres"
 
+	"url-shortener/internal/http-server/handlers/url/save"
 	mwlogger "url-shortener/internal/http-server/middleware/logger"
 
 	"github.com/go-chi/chi"
@@ -29,13 +31,30 @@ func main() {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
+
 	router := chi.NewRouter()
+
 	router.Use(middleware.RequestID) // Каждому запросу добавляется его id
 	router.Use(mwlogger.New(log))    // Кастомный logger middleware
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
-	//router.Use(middleware.Logger)    // Logger для запросов
-	_ = storage
+
+	router.Post("/url", save.New(log, storage))
+
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.Timeout,
+		WriteTimeout: cfg.Timeout,
+		IdleTimeout:  cfg.IdleTimeout,
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+
+	log.Error("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
