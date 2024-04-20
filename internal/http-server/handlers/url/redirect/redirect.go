@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/render"
 )
 
+//go:generate mockery --name URLGetter
 type URLGetter interface {
 	GetURL(alias string) (string, error)
 }
@@ -54,5 +55,6 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 		log.Info("got url", slog.String("url", resURL))
 
 		http.Redirect(w, r, resURL, http.StatusFound)
+
 	}
 }
