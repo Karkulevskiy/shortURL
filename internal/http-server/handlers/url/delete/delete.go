@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/render"
 )
 
+//go:generate mockery --name URLDeleter
 type URLDeleter interface {
 	DeleteURL(alias string) error
 }

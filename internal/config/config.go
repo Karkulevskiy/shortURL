@@ -26,7 +26,7 @@ type HTTPServer struct {
 
 // Функция с приставкой must не должна возрващать значение, а паниковать
 func MustLoad() *Config {
-	os.Setenv("CONFIG_PATH", `.\cmd\config\local.yaml`)
+	os.Setenv("CONFIG_PATH", `/go/cmd/config/local.yaml`)
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH is not set")

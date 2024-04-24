@@ -1,2 +1,4 @@
 .vscode
 .idea
+.database/
+url-shortener.exe
