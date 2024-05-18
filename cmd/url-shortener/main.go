@@ -4,12 +4,15 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
+
 	"url-shortener/internal/config"
-	"url-shortener/internal/lib/logger/sl"
+	"url-shortener/internal/metrics"
 	"url-shortener/internal/storage/postgres"
 
 	dropdb "url-shortener/internal/http-server/handlers/db"
 	"url-shortener/internal/http-server/handlers/url/save"
+
 	mwlogger "url-shortener/internal/http-server/middleware/logger"
 
 	"url-shortener/internal/http-server/handlers/url/delete"
@@ -17,6 +20,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -26,14 +31,31 @@ const (
 )
 
 func main() {
-	cfg := config.MustLoad()
+
+	//cfg := config.MustLoad()
+
+	cfg := config.Config{
+		Env:              "local",
+		ConnectionString: "host=db port=5432 user=postgres password=230704 dbname=postgres sslmode=disable",
+		HTTPServer: config.HTTPServer{
+			Address:     ":8000",
+			Timeout:     time.Second * 4,
+			IdleTimeout: time.Minute,
+			User:        "myuser",
+			Password:    "mypass",
+		},
+		Metrics: config.Metrics{
+			PrometheusAddress: ":9001",
+		},
+	}
+
 	log := setupLogger(cfg.Env)
 	log.Info("starting url-shortener", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
+
 	storage, err := postgres.New(cfg.ConnectionString)
 	if err != nil {
-		log.Error("failed to init storage", sl.Err(err))
-		os.Exit(1)
+		panic(err.Error())
 	}
 
 	router := chi.NewRouter()
@@ -55,7 +77,7 @@ func main() {
 	router.Get("/{alias}", redirect.New(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.Address))
-	//test
+
 	srv := &http.Server{
 		Addr:         cfg.Address,
 		Handler:      router,
@@ -63,9 +85,22 @@ func main() {
 		WriteTimeout: cfg.Timeout,
 		IdleTimeout:  cfg.IdleTimeout,
 	}
-	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start server")
-	}
+
+	pMux := setupPrometheus()
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start server")
+		}
+	}()
+
+	go func() {
+		if err := http.ListenAndServe(cfg.PrometheusAddress, pMux); err != nil {
+			log.Error("failed to start prometheus server")
+		}
+	}()
+
+	select {}
 
 	log.Error("server stopped")
 }
@@ -87,4 +122,20 @@ func setupLogger(env string) *slog.Logger {
 		)
 	}
 	return log
+}
+
+func setupPrometheus() *http.ServeMux {
+	reg := prometheus.NewRegistry()
+
+	m := metrics.NewMetrics(reg)
+
+	_ = m
+
+	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+
+	pMux := http.NewServeMux()
+
+	pMux.Handle("/metrics", promHandler)
+
+	return pMux
 }

@@ -2,6 +2,7 @@ package save
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"url-shortener/internal/lib/api/response"
@@ -66,22 +67,22 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.NewRandomString(aliasLength)
 		}
 
+		log.Info(fmt.Sprintf("alias was generated: %s", alias))
+
 		//TODO: передалать генерацию url
 		id, err := urlSaver.SaveURL(req.URL, alias)
 
-		if errors.Is(err, storage.ErrURLExists) {
-			log.Info("url already exists", slog.String("url", req.URL))
-
-			render.JSON(w, r, response.Error("url already exists"))
-
-			return
-		}
-
 		if err != nil {
+			if errors.Is(err, storage.ErrURLExists) {
+				log.Info("url already exists", slog.String("url", req.URL))
+
+				render.JSON(w, r, response.Error("url already exists"))
+
+				return
+			}
+
 			log.Error("failed to add url", sl.Err(err))
-
 			render.JSON(w, r, response.Error("failed to add url"))
-
 			return
 		}
 

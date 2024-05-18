@@ -6,7 +6,6 @@ import (
 	"url-shortener/internal/storage"
 
 	"github.com/lib/pq"
-	_ "github.com/lib/pq"
 )
 
 type Storage struct {
@@ -54,6 +53,7 @@ func preparePostgres(db *sql.DB, query string, op string) error {
 
 func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 	const op = "storage.postgres.SaveURL"
+
 	stmt, err := s.db.Prepare(`INSERT INTO url(url, alias) VALUES($1, $2) RETURNING id`)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)

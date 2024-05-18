@@ -1,12 +1,11 @@
-FROM golang:latest
+FROM golang:alpine
 
 RUN go version
 ENV GOPATH=/
 
 COPY ./ ./
 
-RUN apt-get update
-RUN apt-get -y install postgresql-client
+RUN apk update && apk add postgresql
 
 RUN chmod +x wait-for-postgres.sh
 

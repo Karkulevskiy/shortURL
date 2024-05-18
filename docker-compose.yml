@@ -3,19 +3,39 @@ services:
   url-shortener:
     build: ./
     command: ./wait-for-postgres.sh db ./url-shortener
+    environment:
+      - DB_PASSWORD=230704
     ports:
-      - 8000:8082
+      - 8000:8000
+      - 9001:9001
     depends_on:
       - db
+
+  prometheus:
+    image: prom/prometheus:v2.40.4
+    ports:
+      - 9090:9090
+    volumes:
+      - ./cmd/config/prometheus.yml:/etc/prometheus/prometheus.yml
+  
+  grafana:
+    image: grafana/grafana:9.3.0
+    ports:
+      - 3000:3000
     environment:
-      - DB_PASSWORD=230704   
+      - GF_SECURITY_ADMIN_PASSWORD=230704
+      - GF_SECURITY_ADMIN_USER=admin  
+    volumes:
+      - ./cmd/config/grafana.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana:/var/lib/grafana
+
   db:
     restart: always
-    image: postgres:latest
+    image: postgres:alpine
     volumes:
       - ./.database/postres/data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=230704  
-    ports:
-      - 5432:5432  
+      - POSTGRES_PASSWORD=230704
 
+volumes: 
+  grafana:
