@@ -33,7 +33,7 @@ const (
 func main() {
 
 	//cfg := config.MustLoad()
-
+	//
 	cfg := config.Config{
 		Env:              "local",
 		ConnectionString: "host=db port=5432 user=postgres password=230704 dbname=postgres sslmode=disable",
