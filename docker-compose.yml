@@ -2,7 +2,7 @@ version: '3.8'
 services:
   url-shortener:
     build: ./
-    command: ./wait-for-postgres.sh db ./url-shortener
+    command: ./wait-for-postgres.sh db /build/url-shortener
     environment:
       - DB_PASSWORD=230704
     ports:

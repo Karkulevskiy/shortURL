@@ -1,15 +1,16 @@
-FROM golang:alpine
+FROM golang:alpine as builder
 
-RUN go version
+WORKDIR /build
+
+COPY . .
 ENV GOPATH=/
+RUN go build -o url-shortener ./cmd/url-shortener/main.go
 
-COPY ./ ./
+FROM alpine:latest as production
+COPY --from=builder /build/url-shortener /build/url-shortener
+ADD wait-for-postgres.sh .
 
 RUN apk update && apk add postgresql
-
 RUN chmod +x wait-for-postgres.sh
 
-RUN go mod download
-RUN go build -o . ./...
-
-CMD ["./url-shortener"]
+CMD ["/build/url-shortener"]
