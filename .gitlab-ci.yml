@@ -9,4 +9,4 @@ test-job:
   script:
     - docker compose -f docker/test/docker-compose.yml down
     - docker compose -f docker/test/docker-compose.yml build url-shortener
-    - docker compose -f docker/test/docker-compose.yml --abort-on-container-exit
+    - docker compose -f docker/test/docker-compose.yml up --abort-on-container-exit
