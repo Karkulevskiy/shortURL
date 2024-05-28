@@ -11,7 +11,9 @@ import (
 	"url-shortener/internal/http-server/handlers/url/save"
 	"url-shortener/internal/http-server/handlers/url/save/mocks"
 	"url-shortener/internal/lib/logger/slogdiscard"
+	"url-shortener/internal/metrics"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -67,7 +69,9 @@ func TestSaveHandler(t *testing.T) {
 					Once()
 			}
 
-			handler := save.New(slogdiscard.NewDiscardLogger(), urlSaverMock, nil)
+			metrics := metrics.NewMetrics(prometheus.NewRegistry())
+
+			handler := save.New(slogdiscard.NewDiscardLogger(), urlSaverMock, metrics)
 
 			input := fmt.Sprintf(`{"url": "%s", "alias": "%s"}`, tt.url, tt.alias)
 

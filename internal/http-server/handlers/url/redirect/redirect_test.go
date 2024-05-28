@@ -9,7 +9,9 @@ import (
 	"url-shortener/internal/http-server/handlers/url/redirect"
 	"url-shortener/internal/http-server/handlers/url/redirect/mocks"
 	"url-shortener/internal/lib/logger/slogdiscard"
+	"url-shortener/internal/metrics"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -57,7 +59,9 @@ func TestGetURL(t *testing.T) {
 					Once()
 			}
 
-			handler := redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock, nil)
+			metrics := metrics.NewMetrics(prometheus.NewRegistry())
+
+			handler := redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock, metrics)
 
 			req, err := http.NewRequest(http.MethodGet, "/"+rt.alias, nil)
 
