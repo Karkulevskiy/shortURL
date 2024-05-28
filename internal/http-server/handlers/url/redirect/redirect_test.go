@@ -57,7 +57,7 @@ func TestGetURL(t *testing.T) {
 					Once()
 			}
 
-			handler := redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock)
+			handler := redirect.New(slogdiscard.NewDiscardLogger(), urlGetterMock, nil)
 
 			req, err := http.NewRequest(http.MethodGet, "/"+rt.alias, nil)
 
