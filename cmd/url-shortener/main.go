@@ -30,6 +30,7 @@ const (
 	envProd  = "prod"
 )
 
+// release
 // TODO: add docs
 func main() {
 
