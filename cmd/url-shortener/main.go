@@ -30,9 +30,6 @@ const (
 	envProd  = "prod"
 )
 
-// bug
-// bug 2
-// bug 3
 // TODO: add docs
 func main() {
 
