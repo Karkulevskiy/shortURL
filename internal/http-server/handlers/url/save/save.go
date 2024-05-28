@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/logger/sl"
+	"url-shortener/internal/metrics"
 	"url-shortener/internal/storage"
 
 	"url-shortener/internal/lib/random"
@@ -34,7 +35,7 @@ type URLSaver interface {
 	SaveURL(urlToSave, alias string) (int64, error)
 }
 
-func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
+func New(log *slog.Logger, urlSaver URLSaver, metrics *metrics.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.save.New"
 
@@ -87,6 +88,8 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		}
 
 		log.Info("url added", slog.Int64("id", id))
+
+		metrics.TotalRequests.Inc()
 
 		render.JSON(w, r, Response{
 			Response: response.OK(),

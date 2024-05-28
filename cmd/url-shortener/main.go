@@ -65,13 +65,13 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	pMux := setupPrometheus()
+	pMux, metrics := setupPrometheus()
 
 	router.Route("/url", func(r chi.Router) {
 		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
-		r.Post("/", save.New(log, storage))
+		r.Post("/", save.New(log, storage, metrics))
 		r.Get("/drop", dropdb.New(log, storage))
 		r.Delete("/{alias}", delete.New(log, storage))
 	})
@@ -124,12 +124,10 @@ func setupLogger(env string) *slog.Logger {
 	return log
 }
 
-func setupPrometheus() *http.ServeMux {
+func setupPrometheus() (*http.ServeMux, *metrics.Metrics) {
 	reg := prometheus.NewRegistry()
 
 	m := metrics.NewMetrics(reg)
-
-	_ = m
 
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 
@@ -137,5 +135,5 @@ func setupPrometheus() *http.ServeMux {
 
 	pMux.Handle("/metrics", promHandler)
 
-	return pMux
+	return pMux, m
 }
