@@ -65,6 +65,8 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	pMux := setupPrometheus()
+
 	router.Route("/url", func(r chi.Router) {
 		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
@@ -85,8 +87,6 @@ func main() {
 		WriteTimeout: cfg.Timeout,
 		IdleTimeout:  cfg.IdleTimeout,
 	}
-
-	pMux := setupPrometheus()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
