@@ -30,10 +30,8 @@ const (
 	envProd  = "prod"
 )
 
-// bug
-// bug 2
-// bug 3
 // TODO: add docs
+// developing
 func main() {
 
 	//cfg := config.MustLoad()
