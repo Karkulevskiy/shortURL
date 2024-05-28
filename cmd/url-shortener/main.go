@@ -32,6 +32,7 @@ const (
 
 // TODO: add docs
 // developing
+// new feature
 func main() {
 
 	//cfg := config.MustLoad()
