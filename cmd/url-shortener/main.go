@@ -30,6 +30,7 @@ const (
 	envProd  = "prod"
 )
 
+// TODO: add docs
 func main() {
 
 	//cfg := config.MustLoad()
