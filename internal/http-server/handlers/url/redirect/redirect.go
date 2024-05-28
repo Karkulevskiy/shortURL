@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"url-shortener/internal/lib/api/response"
 	"url-shortener/internal/lib/logger/sl"
+	"url-shortener/internal/metrics"
 	"url-shortener/internal/storage"
 
 	"github.com/go-chi/chi"
@@ -18,7 +19,7 @@ type URLGetter interface {
 	GetURL(alias string) (string, error)
 }
 
-func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
+func New(log *slog.Logger, urlGetter URLGetter, metrics *metrics.Metrics) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.url.redirect.New"
 
@@ -53,6 +54,8 @@ func New(log *slog.Logger, urlGetter URLGetter) http.HandlerFunc {
 		}
 
 		log.Info("got url", slog.String("url", resURL))
+
+		metrics.TotalRequests.Inc()
 
 		http.Redirect(w, r, resURL, http.StatusFound)
 
